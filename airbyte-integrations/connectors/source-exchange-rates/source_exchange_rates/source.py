@@ -47,13 +47,10 @@ class ExchangeRates(HttpStream):
         return params
 
     def request_headers(self, **kwargs) -> MutableMapping[str, Any]:
-        headers = {"apikey": self.access_key}
-
-        return headers
+        return {"apikey": self.access_key}
 
     def parse_response(self, response: requests.Response, **kwargs) -> Iterable[Mapping]:
-        response_json = response.json()
-        yield response_json
+        yield response.json()
 
     def stream_slices(self, stream_state: Mapping[str, Any] = None, **kwargs) -> Iterable[Optional[Mapping[str, Any]]]:
         stream_state = stream_state or {}
@@ -77,7 +74,10 @@ def chunk_date_range(start_date: DateTime, ignore_weekends: bool) -> Iterable[Ma
     now = pendulum.now()
     while start_date < now:
         day_of_week = start_date.day_of_week
-        if day_of_week != pendulum.SATURDAY and day_of_week != pendulum.SUNDAY or not ignore_weekends:
+        if (
+            day_of_week not in [pendulum.SATURDAY, pendulum.SUNDAY]
+            or not ignore_weekends
+        ):
             days.append({"date": start_date.to_date_string()})
         start_date = start_date.add(days=1)
 

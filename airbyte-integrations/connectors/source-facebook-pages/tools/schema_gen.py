@@ -238,10 +238,7 @@ def get_fields(fields, with_refs=False):
         attr_name = attr["name"]
         fb_type = attr["type"]
 
-        type_default = FB_TYPES.get(fb_type)
-
-        # process attrs with default type
-        if type_default:
+        if type_default := FB_TYPES.get(fb_type):
             schema_fields[attr_name] = type_default
             continue
 
@@ -283,7 +280,6 @@ def get_fields(fields, with_refs=False):
 
 def get_edges(edges):
 
-    schema_edges = {}
     attrs = {}
     for attr in edges:
         if attr["method"] == "GET":
@@ -305,12 +301,14 @@ def get_edges(edges):
             attrs[attr_name] = attr_type
             FOUND_SUBNODES.add(attr_type)
 
-    for attr_name, attr_type in attrs.items():
-        # https://developers.facebook.com/docs/graph-api/results
-        schema_edges[attr_name] = {
+    return {
+        attr_name: {
             "type": ["object", "null"],
             "properties": {
-                "data": {"type": ["array", "null"], "items": {"$ref": f"{attr_type.lower()}.json"}},
+                "data": {
+                    "type": ["array", "null"],
+                    "items": {"$ref": f"{attr_type.lower()}.json"},
+                },
                 "paging": {
                     "type": ["object", "null"],
                     "properties": {
@@ -318,14 +316,17 @@ def get_edges(edges):
                         "next": {"type": ["string", "null"]},
                         "cursors": {
                             "type": "object",
-                            "properties": {"before": {"type": ["string", "null"]}, "after": {"type": ["string", "null"]}},
+                            "properties": {
+                                "before": {"type": ["string", "null"]},
+                                "after": {"type": ["string", "null"]},
+                            },
                         },
                     },
                 },
             },
         }
-
-    return schema_edges
+        for attr_name, attr_type in attrs.items()
+    }
 
 
 def build_schema(node_name, with_refs=False):

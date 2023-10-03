@@ -178,9 +178,8 @@ class ConvexStream(HttpStream, IncrementalMixin):
                 params["cursor"] = self._snapshot_cursor_value
             if self._delta_cursor_value:
                 params["snapshot"] = self._delta_cursor_value
-        else:
-            if self._delta_cursor_value:
-                params["cursor"] = self._delta_cursor_value
+        elif self._delta_cursor_value:
+            params["cursor"] = self._delta_cursor_value
         return params
 
     def request_headers(

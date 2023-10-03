@@ -33,9 +33,7 @@ class DatetimeFormatInferrer:
         """Checks if the value can be a datetime. This is the case if the value is a string or an integer between 1_000_000_000 and 2_000_000_000. This is separate from the format check for performance reasons"""
         if isinstance(value, str) and (not value.isdecimal() or int(value) in self._timestamp_heuristic_range):
             return True
-        if isinstance(value, int) and value in self._timestamp_heuristic_range:
-            return True
-        return False
+        return isinstance(value, int) and value in self._timestamp_heuristic_range
 
     def _matches_format(self, value: Any, format: str) -> bool:
         """Checks if the value matches the format"""

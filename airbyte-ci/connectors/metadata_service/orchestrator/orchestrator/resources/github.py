@@ -65,6 +65,4 @@ def github_workflow_runs(resource_context: InitResourceContext) -> List[ContentF
         "GET", f"{github_connector_repo.url}/actions/workflows/{workflow_id}/runs", parameters=params
     )
 
-    workflow_runs = data.get("workflow_runs", [])
-
-    return workflow_runs
+    return data.get("workflow_runs", [])

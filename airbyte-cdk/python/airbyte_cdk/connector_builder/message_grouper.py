@@ -222,10 +222,7 @@ class MessageGrouper:
         if len(slices) >= self._max_slices:
             return True
 
-        for slice in slices:
-            if len(slice.pages) >= self._max_pages_per_slice:
-                return True
-        return False
+        return any(len(slice.pages) >= self._max_pages_per_slice for slice in slices)
 
     def _parse_slice_description(self, log_message):
         return json.loads(log_message.replace(AbstractSource.SLICE_LOG_PREFIX, "", 1))

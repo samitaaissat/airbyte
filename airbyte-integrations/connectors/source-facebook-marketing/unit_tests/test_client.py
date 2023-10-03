@@ -63,9 +63,21 @@ class TestBackoff:
             },
         ]
 
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/campaigns", campaign_responses)
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/1/", [{"status_code": 200}])
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/2/", [{"status_code": 200}])
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/campaigns",
+            campaign_responses,
+        )
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/1/",
+            [{"status_code": 200}],
+        )
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/2/",
+            [{"status_code": 200}],
+        )
 
         stream = Campaigns(api=api, start_date=pendulum.now(), end_date=pendulum.now(), include_deleted=False)
         try:
@@ -107,9 +119,19 @@ class TestBackoff:
             },
         ]
 
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/adcreatives", responses)
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/", responses)
-        requests_mock.register_uri("POST", FacebookSession.GRAPH + f"/{FB_API_VERSION}/", batch_responses)
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/adcreatives",
+            responses,
+        )
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/",
+            responses,
+        )
+        requests_mock.register_uri(
+            "POST", f"{FacebookSession.GRAPH}/{FB_API_VERSION}/", batch_responses
+        )
 
         stream = AdCreatives(api=api, include_deleted=False)
         records = list(stream.read_records(sync_mode=SyncMode.full_refresh, stream_state={}))
@@ -136,9 +158,21 @@ class TestBackoff:
             },
         ]
 
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/me/business_users", json={"data": []})
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/", responses)
-        requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/{account_data['id']}/", responses)
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/me/business_users",
+            json={"data": []},
+        )
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/",
+            responses,
+        )
+        requests_mock.register_uri(
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/{account_data['id']}/",
+            responses,
+        )
 
         stream = AdAccount(api=api)
         accounts = list(stream.read_records(sync_mode=SyncMode.full_refresh, stream_state={}))
@@ -149,7 +183,9 @@ class TestBackoff:
         """Error every time, check limit parameter decreases by 2 times every new call"""
 
         res = requests_mock.register_uri(
-            "GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/campaigns", [fb_call_amount_data_response]
+            "GET",
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/campaigns",
+            [fb_call_amount_data_response],
         )
 
         stream = Campaigns(api=api, start_date=pendulum.now(), end_date=pendulum.now(), include_deleted=False, page_size=100)
@@ -160,7 +196,9 @@ class TestBackoff:
 
     def test_limit_error_retry_next_page(self, fb_call_amount_data_response, requests_mock, api, account_id):
         """Unlike the previous test, this one tests the API call fail on the second or more page of a request."""
-        base_url = FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{account_id}/advideos"
+        base_url = (
+            f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{account_id}/advideos"
+        )
 
         res = requests_mock.register_uri(
             "GET", base_url,

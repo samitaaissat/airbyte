@@ -94,14 +94,12 @@ class Client:
         """
         token_total_lifetime: timedelta = datetime.utcnow() - self.oauth.access_token_received_datetime
         token_updated_expires_in: int = self.oauth.access_token_expires_in_seconds - token_total_lifetime.seconds
-        return False if token_updated_expires_in > self.refresh_token_safe_delta else True
+        return token_updated_expires_in <= self.refresh_token_safe_delta
 
     def should_give_up(self, error: Union[WebFault, URLError]) -> bool:
         if isinstance(error, URLError):
-            if (
-                isinstance(error.reason, socket.timeout)
-                or isinstance(error.reason, ssl.SSLError)
-                or isinstance(error.reason, socket.gaierror)  # temporary failure in name resolution
+            if isinstance(
+                error.reason, (socket.timeout, ssl.SSLError, socket.gaierror)
             ):
                 return False
 

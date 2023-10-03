@@ -39,9 +39,7 @@ class DefaultFileBasedCursor(FileBasedCursor):
     def add_file(self, file: RemoteFile) -> None:
         self._file_to_datetime_history[file.uri] = file.last_modified.strftime(self.DATE_TIME_FORMAT)
         if len(self._file_to_datetime_history) > self._max_history_size:
-            # Get the earliest file based on its last modified date and its uri
-            oldest_file = self._compute_earliest_file_in_history()
-            if oldest_file:
+            if oldest_file := self._compute_earliest_file_in_history():
                 del self._file_to_datetime_history[oldest_file.uri]
             else:
                 raise Exception(
@@ -49,10 +47,9 @@ class DefaultFileBasedCursor(FileBasedCursor):
                 )
 
     def get_state(self) -> StreamState:
-        state = {
+        return {
             "history": self._file_to_datetime_history,
         }
-        return state
 
     def _is_history_full(self) -> bool:
         """
@@ -111,10 +108,9 @@ class DefaultFileBasedCursor(FileBasedCursor):
     def _compute_start_time(self) -> datetime:
         if not self._file_to_datetime_history:
             return datetime.min
-        else:
-            earliest = min(self._file_to_datetime_history.values())
-            earliest_dt = datetime.strptime(earliest, self.DATE_TIME_FORMAT)
-            if self._is_history_full():
-                time_window = datetime.now() - self._time_window_if_history_is_full
-                earliest_dt = min(earliest_dt, time_window)
-            return earliest_dt
+        earliest = min(self._file_to_datetime_history.values())
+        earliest_dt = datetime.strptime(earliest, self.DATE_TIME_FORMAT)
+        if self._is_history_full():
+            time_window = datetime.now() - self._time_window_if_history_is_full
+            earliest_dt = min(earliest_dt, time_window)
+        return earliest_dt

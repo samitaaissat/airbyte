@@ -46,8 +46,7 @@ CONFIG_DATE_FORMAT = "YYYY-MM-DD"
 
 class SourceAmazonAds(AbstractSource):
     def _validate_and_transform(self, config: Mapping[str, Any]):
-        start_date = config.get("start_date")
-        if start_date:
+        if start_date := config.get("start_date"):
             config["start_date"] = pendulum.from_format(start_date, CONFIG_DATE_FORMAT).date()
         else:
             config["start_date"] = None

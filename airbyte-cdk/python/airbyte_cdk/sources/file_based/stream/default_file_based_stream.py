@@ -51,8 +51,12 @@ class DefaultFileBasedStream(AbstractFileBasedStream, IncrementalMixin):
         all_files = self._list_files()
         files_to_read = self._cursor.get_files_to_sync(all_files, self.logger)
         sorted_files_to_read = sorted(files_to_read, key=lambda f: (f.last_modified, f.uri))
-        slices = [{"files": list(group[1])} for group in itertools.groupby(sorted_files_to_read, lambda f: f.last_modified)]
-        return slices
+        return [
+            {"files": list(group[1])}
+            for group in itertools.groupby(
+                sorted_files_to_read, lambda f: f.last_modified
+            )
+        ]
 
     def read_records_from_slice(self, stream_slice: StreamSlice) -> Iterable[Mapping[str, Any]]:
         """
@@ -98,16 +102,14 @@ class DefaultFileBasedStream(AbstractFileBasedStream, IncrementalMixin):
 
     def _get_raw_json_schema(self) -> Mapping[str, Any]:
         if self.config.input_schema:
-            type_mapping = self.config.input_schema
-        else:
-            files = self._list_files()
-            max_n_files_for_schema_inference = self._discovery_policy.max_n_files_for_schema_inference
-            if len(files) > max_n_files_for_schema_inference:
-                # Use the most recent files for schema inference, so we pick up schema changes during discovery.
-                files = sorted(files, key=lambda x: x.last_modified, reverse=True)[:max_n_files_for_schema_inference]
-                logging.warning(f"Refusing to infer schema for {len(files)} files; using {max_n_files_for_schema_inference} files.")
-            type_mapping = self.infer_schema(files)
-        return type_mapping
+            return self.config.input_schema
+        files = self._list_files()
+        max_n_files_for_schema_inference = self._discovery_policy.max_n_files_for_schema_inference
+        if len(files) > max_n_files_for_schema_inference:
+            # Use the most recent files for schema inference, so we pick up schema changes during discovery.
+            files = sorted(files, key=lambda x: x.last_modified, reverse=True)[:max_n_files_for_schema_inference]
+            logging.warning(f"Refusing to infer schema for {len(files)} files; using {max_n_files_for_schema_inference} files.")
+        return self.infer_schema(files)
 
     @cache
     def _list_files(self) -> List[RemoteFile]:

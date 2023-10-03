@@ -114,7 +114,7 @@ class AirbyteEntrypoint(object):
 
                         yield from map(AirbyteEntrypoint.airbyte_message_to_string, self.read(source_spec, config, config_catalog, state))
                     else:
-                        raise Exception("Unexpected command " + cmd)
+                        raise Exception(f"Unexpected command {cmd}")
         finally:
             yield from [self.airbyte_message_to_string(queued_message) for queued_message in self._emit_queued_messages(self.source)]
 
@@ -123,8 +123,7 @@ class AirbyteEntrypoint(object):
         try:
             self.validate_connection(source_spec, config)
         except AirbyteTracedException as traced_exc:
-            connection_status = traced_exc.as_connection_status_message()
-            if connection_status:
+            if connection_status := traced_exc.as_connection_status_message():
                 yield from self._emit_queued_messages(self.source)
                 yield connection_status
                 return

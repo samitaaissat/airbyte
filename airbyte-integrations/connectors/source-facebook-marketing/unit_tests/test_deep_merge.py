@@ -21,8 +21,6 @@ def test_return_new_object():
 
     result = deep_merge(deepcopy(left), deepcopy(right))
 
-    assert left == left
-    assert right == right
     assert result == expected_result
 
 

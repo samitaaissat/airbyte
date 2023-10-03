@@ -41,11 +41,9 @@ class PurchaseGenerator:
     ) -> datetime.datetime:
         time_between_dates = end_date - start_date
         days_between_dates = time_between_dates.days
-        if days_between_dates < 2:
-            days_between_dates = 2
+        days_between_dates = max(days_between_dates, 2)
         random_number_of_days = numeric.integer_number(0, days_between_dates)
-        random_date = start_date + datetime.timedelta(days=random_number_of_days)
-        return random_date
+        return start_date + datetime.timedelta(days=random_number_of_days)
 
     def generate(self, user_id: int) -> List[Dict]:
         """
@@ -57,11 +55,11 @@ class PurchaseGenerator:
         last_user_id_digit = int(repr(user_id)[-1])
         purchase_count = 1
         id_offset = 0
-        if last_user_id_digit - 1 == 5:
+        if last_user_id_digit == 6:
             purchase_count = 0
-        elif last_user_id_digit - 1 == 6:
+        elif last_user_id_digit == 7:
             id_offset = 1
-        elif last_user_id_digit - 1 == 7:
+        elif last_user_id_digit == 8:
             id_offset = 1
             purchase_count = 2
 
@@ -100,7 +98,7 @@ class PurchaseGenerator:
             message = AirbyteMessageWithCachedJSON(type=Type.RECORD, record=record)
             purchases.append(message)
 
-            purchase_count = purchase_count - 1
+            purchase_count -= 1
             i += 1
 
         return purchases

@@ -19,5 +19,4 @@ class CsvParser(FileTypeParser):
 
     def parse_records(self, file: RemoteFile, stream_reader: AbstractFileBasedStreamReader) -> Iterable[Dict[str, Any]]:
         with stream_reader.open_file(file) as fp:
-            reader = csv.DictReader(fp)
-            yield from reader
+            yield from csv.DictReader(fp)

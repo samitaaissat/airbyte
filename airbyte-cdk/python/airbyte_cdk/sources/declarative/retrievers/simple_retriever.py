@@ -174,15 +174,14 @@ class SimpleRetriever(Retriever, HttpStream):
         auth_options_mapping = auth_options_method()
         auth_options_mapping_keys = set(auth_options_mapping.keys())
 
-        intersection = (
+        if intersection := (
             (requester_mapping_keys & paginator_mapping_keys)
             | (requester_mapping_keys & stream_slicer_mapping_keys)
             | (paginator_mapping_keys & stream_slicer_mapping_keys)
             | (requester_mapping_keys & auth_options_mapping_keys)
             | (paginator_mapping_keys & auth_options_mapping_keys)
             | (stream_slicer_mapping_keys & auth_options_mapping_keys)
-        )
-        if intersection:
+        ):
             raise ValueError(f"Duplicate keys found: {intersection}")
         return {**requester_mapping, **paginator_mapping, **stream_slicer_mapping, **auth_options_mapping}
 
@@ -244,8 +243,7 @@ class SimpleRetriever(Retriever, HttpStream):
             stream_state=self.state, stream_slice=stream_slice, next_page_token=next_page_token
         )
         if isinstance(base_body_data, str):
-            paginator_body_data = self.paginator.get_request_body_data()
-            if paginator_body_data:
+            if paginator_body_data := self.paginator.get_request_body_data():
                 raise ValueError(
                     f"Cannot combine requester's body data= {base_body_data} with paginator's body_data: {paginator_body_data}"
                 )
@@ -310,9 +308,7 @@ class SimpleRetriever(Retriever, HttpStream):
         :param next_page_token:
         :return:
         """
-        # Warning: use self.state instead of the stream_state passed as argument!
-        paginator_path = self.paginator.path()
-        if paginator_path:
+        if paginator_path := self.paginator.path():
             return paginator_path
         else:
             return self.requester.get_path(stream_state=self.state, stream_slice=stream_slice, next_page_token=next_page_token)

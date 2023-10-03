@@ -115,7 +115,7 @@ class DatetimeBasedCursor(Cursor):
         last_record_value = last_record.get(self.cursor_field.eval(self.config)) if last_record else None
 
         possible_cursor_values = list(filter(lambda item: item, [last_record_value, self._cursor]))
-        self._cursor = max(possible_cursor_values) if possible_cursor_values else None
+        self._cursor = max(possible_cursor_values, default=None)
 
     def stream_slices(self) -> Iterable[StreamSlice]:
         """
@@ -183,9 +183,7 @@ class DatetimeBasedCursor(Cursor):
         """
         :return Parses an ISO 8601 durations into datetime.timedelta or Duration objects.
         """
-        if not time_str:
-            return datetime.timedelta(0)
-        return parse_duration(time_str)
+        return datetime.timedelta(0) if not time_str else parse_duration(time_str)
 
     def get_request_params(
         self,

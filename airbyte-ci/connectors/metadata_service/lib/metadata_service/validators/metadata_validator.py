@@ -31,24 +31,29 @@ def validate_metadata_images_in_dockerhub(metadata_definition: ConnectorMetadata
         (oss_docker_image, oss_docker_version),
         (cloud_docker_image, cloud_docker_version),
         (normalization_docker_image, normalization_docker_version),
+        *[
+            (base_docker_image, version)
+            for version in breaking_change_versions
+        ],
     ]
-    possible_docker_images.extend([(base_docker_image, version) for version in breaking_change_versions])
-
     # Filter out tuples with None and remove duplicates
     images_to_check = list(set(filter(lambda x: None not in x, possible_docker_images)))
 
     print(f"Checking that the following images are on dockerhub: {images_to_check}")
-    for image, version in images_to_check:
-        if not is_image_on_docker_hub(image, version):
-            return False, f"Image {image}:{version} does not exist in DockerHub"
-
-    return True, None
+    return next(
+        (
+            (False, f"Image {image}:{version} does not exist in DockerHub")
+            for image, version in images_to_check
+            if not is_image_on_docker_hub(image, version)
+        ),
+        (True, None),
+    )
 
 
 def validate_at_least_one_language_tag(metadata_definition: ConnectorMetadataDefinitionV0) -> ValidationResult:
     """Ensure that there is at least one tag in the data.tags field that matches language:<LANG>."""
     tags = get(metadata_definition, "data.tags", [])
-    if not any([tag.startswith("language:") for tag in tags]):
+    if not any(tag.startswith("language:") for tag in tags):
         return False, "At least one tag must be of the form language:<LANG>"
 
     return True, None
@@ -57,11 +62,14 @@ def validate_at_least_one_language_tag(metadata_definition: ConnectorMetadataDef
 def validate_all_tags_are_keyvalue_pairs(metadata_definition: ConnectorMetadataDefinitionV0) -> ValidationResult:
     """Ensure that all tags are of the form <KEY>:<VALUE>."""
     tags = get(metadata_definition, "data.tags", [])
-    for tag in tags:
-        if ":" not in tag:
-            return False, f"Tag {tag} is not of the form <KEY>:<VALUE>"
-
-    return True, None
+    return next(
+        (
+            (False, f"Tag {tag} is not of the form <KEY>:<VALUE>")
+            for tag in tags
+            if ":" not in tag
+        ),
+        (True, None),
+    )
 
 
 PRE_UPLOAD_VALIDATORS = [
