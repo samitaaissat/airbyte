@@ -69,12 +69,13 @@ class AdsInsights(FBMarketingIncrementalStream):
         self._start_date = self._start_date.date()
         self._end_date = self._end_date.date()
         self._fields = fields
-        if action_breakdowns_allow_empty:
-            if action_breakdowns is not None:
-                self.action_breakdowns = action_breakdowns
-        else:
-            if action_breakdowns:
-                self.action_breakdowns = action_breakdowns
+        if (
+            action_breakdowns_allow_empty
+            and action_breakdowns is not None
+            or not action_breakdowns_allow_empty
+            and action_breakdowns
+        ):
+            self.action_breakdowns = action_breakdowns
         if breakdowns is not None:
             self.breakdowns = breakdowns
         self.time_increment = time_increment or self.time_increment
@@ -163,7 +164,9 @@ class AdsInsights(FBMarketingIncrementalStream):
             return
 
         self._cursor_value = pendulum.parse(value[self.cursor_field]).date() if value.get(self.cursor_field) else None
-        self._completed_slices = set(pendulum.parse(v).date() for v in value.get("slices", []))
+        self._completed_slices = {
+            pendulum.parse(v).date() for v in value.get("slices", [])
+        }
         self._next_cursor_value = self._get_start_date()
 
     def get_updated_state(self, current_stream_state: MutableMapping[str, Any], latest_record: Mapping[str, Any]):

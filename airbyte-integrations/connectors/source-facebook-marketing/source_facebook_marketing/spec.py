@@ -88,6 +88,8 @@ class InsightConfig(BaseModel):
     )
 
 
+
+
 class ConnectorConfig(BaseConfig):
     """Connector config"""
 
@@ -126,7 +128,7 @@ class ConnectorConfig(BaseConfig):
             " All data generated between the start date and this end date will be replicated. "
             "Not setting this option will result in always syncing the latest data."
         ),
-        pattern=EMPTY_PATTERN + "|" + DATE_TIME_PATTERN,
+        pattern=f"{EMPTY_PATTERN}|{DATE_TIME_PATTERN}",
         examples=["2017-01-26T00:00:00Z"],
         default_factory=lambda: datetime.now(tz=timezone.utc),
     )

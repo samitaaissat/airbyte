@@ -55,9 +55,7 @@ class MyFacebookAdsApi(FacebookAdsApi):
 
         usage_header_business = headers.get("x-business-use-case-usage")
         usage_header_app = headers.get("x-app-usage")
-        usage_header_ad_account = headers.get("x-ad-account-usage")
-
-        if usage_header_ad_account:
+        if usage_header_ad_account := headers.get("x-ad-account-usage"):
             usage_header_ad_account_loaded = json.loads(usage_header_ad_account)
             usage = max(usage, usage_header_ad_account_loaded.get("acc_id_util_pct"))
 
@@ -131,8 +129,9 @@ class MyFacebookAdsApi(FacebookAdsApi):
         jobs for current app/account.  We need this information to adjust
         number of running async jobs for optimal performance.
         """
-        ads_insights_throttle = response.headers().get("x-fb-ads-insights-throttle")
-        if ads_insights_throttle:
+        if ads_insights_throttle := response.headers().get(
+            "x-fb-ads-insights-throttle"
+        ):
             ads_insights_throttle = json.loads(ads_insights_throttle)
             self._ads_insights_throttle = self.Throttle(
                 per_application=ads_insights_throttle.get("app_id_util_pct", 0),

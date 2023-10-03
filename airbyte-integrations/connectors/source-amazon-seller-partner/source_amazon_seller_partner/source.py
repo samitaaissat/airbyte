@@ -87,7 +87,7 @@ class SourceAmazonSellerPartner(AbstractSource):
             host=endpoint.replace("https://", ""),
             refresh_access_token_headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        stream_kwargs = {
+        return {
             "url_base": endpoint,
             "authenticator": auth,
             "aws_signature": aws_signature,
@@ -99,7 +99,6 @@ class SourceAmazonSellerPartner(AbstractSource):
             "replication_end_date": config.get("replication_end_date"),
             "advanced_stream_options": config.get("advanced_stream_options"),
         }
-        return stream_kwargs
 
     @staticmethod
     def get_sts_credentials(config: Mapping[str, Any]) -> dict:
@@ -144,10 +143,7 @@ class SourceAmazonSellerPartner(AbstractSource):
                 return True, None
 
             # Additional check, since Vendor-ony accounts within Amazon Seller API will not pass the test without this exception
-            if "403 Client Error" in str(e):
-                return True, None
-
-            return False, e
+            return (True, None) if "403 Client Error" in str(e) else (False, e)
 
     def streams(self, config: Mapping[str, Any]) -> List[Stream]:
         """

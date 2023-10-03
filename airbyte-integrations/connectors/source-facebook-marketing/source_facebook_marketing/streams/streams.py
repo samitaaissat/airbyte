@@ -63,8 +63,7 @@ class AdCreatives(FBMarketingStream):
         """Read with super method and append thumbnail_data_url if enabled"""
         for record in super().read_records(sync_mode, cursor_field, stream_slice, stream_state):
             if self._fetch_thumbnail_images:
-                thumbnail_url = record.get("thumbnail_url")
-                if thumbnail_url:
+                if thumbnail_url := record.get("thumbnail_url"):
                     record["thumbnail_data_url"] = fetch_thumbnail_data_url(thumbnail_url)
             yield record
 
@@ -140,8 +139,10 @@ class Activities(FBMarketingIncrementalStream):
         state_value = stream_state.get(self.cursor_field)
         since = self._start_date if not state_value else pendulum.parse(state_value)
 
-        potentially_new_records_in_the_past = self._include_deleted and not stream_state.get("include_deleted", False)
-        if potentially_new_records_in_the_past:
+        if (
+            potentially_new_records_in_the_past := self._include_deleted
+            and not stream_state.get("include_deleted", False)
+        ):
             self.logger.info(f"Ignoring bookmark for {self.name} because of enabled `include_deleted` option")
             since = self._start_date
 

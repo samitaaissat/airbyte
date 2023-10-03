@@ -248,11 +248,18 @@ class InsightAsyncJob(AsyncJob):
         params.update(fields=[pk_name], level=level)
         params.pop("time_increment")  # query all days
         result = self._edge_object.get_insights(params=params)
-        ids = set(row[pk_name] for row in result)
+        ids = {row[pk_name] for row in result}
         logger.info(f"Got {len(ids)} {pk_name}s for period {self._interval}: {ids}")
 
-        jobs = [InsightAsyncJob(api=self._api, edge_object=edge_class(pk), params=self._params, interval=self._interval) for pk in ids]
-        return jobs
+        return [
+            InsightAsyncJob(
+                api=self._api,
+                edge_object=edge_class(pk),
+                params=self._params,
+                interval=self._interval,
+            )
+            for pk in ids
+        ]
 
     def start(self):
         """Start remote job"""
@@ -292,7 +299,7 @@ class InsightAsyncJob(AsyncJob):
         :return: True if completed, False - if task still running
         :raises: JobException in case job failed to start, failed or timed out
         """
-        return bool(self._finish_time is not None)
+        return self._finish_time is not None
 
     @property
     def failed(self) -> bool:

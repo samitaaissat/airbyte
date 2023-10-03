@@ -43,7 +43,7 @@ class DestinationTimeplus(Destination):
         endpoint = config["endpoint"]
         apikey = config["apikey"]
         if endpoint[-1] == "/":
-            endpoint = endpoint[0 : len(endpoint) - 1]
+            endpoint = endpoint[:-1]
         env = Environment().address(endpoint).apikey(apikey)
         stream_list = Stream(env=env).list()
         all_streams = {s.name for s in stream_list}
@@ -59,17 +59,10 @@ class DestinationTimeplus(Destination):
                 if stream_exists:
                     # delete all data in the existing stream and recreate the stream.
                     need_delete_stream = True
-                    need_create_stream = True
-                else:
-                    # only need to create the stream
-                    need_create_stream = True
-            else:
-                if stream_exists:
-                    # for append mode, just add more data to the existing stream. No need to do anything.
-                    pass
-                else:
-                    # for append mode, create the stream and append data to it.
-                    need_create_stream = True
+                need_create_stream = True
+            elif not stream_exists:
+                # for append mode, create the stream and append data to it.
+                need_create_stream = True
 
             if need_delete_stream:
                 # delete the existing stream
@@ -111,21 +104,20 @@ class DestinationTimeplus(Destination):
         airbyte_type = v["type"]
         if type(airbyte_type) is list:
             for t in list(airbyte_type):
-                if t != "null":
-                    type_def = {"type": t}
-                    if t == "array":
-                        type_def["items"] = v["items"]
+                if t == "array":
+                    type_def = {"type": t, "items": v["items"]}
                     return DestinationTimeplus.type_mapping(type_def)
-        if airbyte_type == "number":
-            return "float"
-        elif airbyte_type == "integer":
-            return "integer"
+                elif t != "null":
+                    type_def = {"type": t}
+                    return DestinationTimeplus.type_mapping(type_def)
+        if airbyte_type == "array":
+            return f"array({DestinationTimeplus.type_mapping(v['items'])})"
         elif airbyte_type == "boolean":
             return "bool"
-        elif airbyte_type == "object":
-            return "string"
-        elif airbyte_type == "array":
-            return f"array({DestinationTimeplus.type_mapping(v['items'])})"
+        elif airbyte_type == "integer":
+            return "integer"
+        elif airbyte_type == "number":
+            return "float"
         else:
             return "string"
 
@@ -149,10 +141,10 @@ class DestinationTimeplus(Destination):
             if len(apikey) != 60:
                 return AirbyteConnectionStatus(status=Status.FAILED, message="API Key must be 60 characters")
             if endpoint[-1] == "/":
-                endpoint = endpoint[0 : len(endpoint) - 1]
+                endpoint = endpoint[:-1]
             env = Environment().address(endpoint).apikey(apikey)
             Stream(env=env).list()
-            logger.info("Successfully connected to " + endpoint)
+            logger.info(f"Successfully connected to {endpoint}")
             return AirbyteConnectionStatus(status=Status.SUCCEEDED)
         except Exception as e:
             return AirbyteConnectionStatus(

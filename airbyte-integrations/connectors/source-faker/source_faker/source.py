@@ -13,7 +13,7 @@ from .streams import Products, Purchases, Users
 
 class SourceFaker(AbstractSource):
     def check_connection(self, logger: AirbyteLogger, config: Mapping[str, Any]) -> Tuple[bool, Any]:
-        if type(config["count"]) == int or type(config["count"]) == float:
+        if type(config["count"]) in [int, float]:
             return True, None
         else:
             return False, "Count option is missing"

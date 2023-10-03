@@ -30,10 +30,7 @@ class Products(Stream, IncrementalMixin):
 
     @property
     def state(self) -> Mapping[str, Any]:
-        if hasattr(self, "_state"):
-            return self._state
-        else:
-            return {}
+        return self._state if hasattr(self, "_state") else {}
 
     @state.setter
     def state(self, value: Mapping[str, Any]):
@@ -51,9 +48,9 @@ class Products(Stream, IncrementalMixin):
         products = self.load_products()
         updated_at = ""
 
-        median_record_byte_size = 180
         rows_to_emit = len(products) - total_records
         if rows_to_emit > 0:
+            median_record_byte_size = 180
             yield generate_estimate(self.name, rows_to_emit, median_record_byte_size)
 
         for product in products:
@@ -85,10 +82,7 @@ class Users(Stream, IncrementalMixin):
 
     @property
     def state(self) -> Mapping[str, Any]:
-        if hasattr(self, "_state"):
-            return self._state
-        else:
-            return {}
+        return self._state if hasattr(self, "_state") else {}
 
     @state.setter
     def state(self, value: Mapping[str, Any]):
@@ -147,10 +141,7 @@ class Purchases(Stream, IncrementalMixin):
 
     @property
     def state(self) -> Mapping[str, Any]:
-        if hasattr(self, "_state"):
-            return self._state
-        else:
-            return {}
+        return self._state if hasattr(self, "_state") else {}
 
     @state.setter
     def state(self, value: Mapping[str, Any]):

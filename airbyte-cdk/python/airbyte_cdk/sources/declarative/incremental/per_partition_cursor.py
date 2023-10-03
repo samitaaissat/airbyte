@@ -34,7 +34,7 @@ class PerPartitionStreamSlice(StreamSlice):
         self._cursor_slice = cursor_slice
         if partition.keys() & cursor_slice.keys():
             raise ValueError("Keys for partition and incremental sync cursor should not overlap")
-        self._stream_slice = dict(partition) | dict(cursor_slice)
+        self._stream_slice = dict(partition) | cursor_slice
 
     @property
     def partition(self):
@@ -156,8 +156,7 @@ class PerPartitionCursor(Cursor):
     def get_stream_state(self) -> StreamState:
         states = []
         for partition_tuple, cursor in self._cursor_per_partition.items():
-            cursor_state = cursor.get_stream_state()
-            if cursor_state:
+            if cursor_state := cursor.get_stream_state():
                 states.append(
                     {
                         "partition": self._to_dict(partition_tuple),
@@ -167,8 +166,9 @@ class PerPartitionCursor(Cursor):
         return {"states": states}
 
     def _get_state_for_partition(self, partition: Mapping[str, Any]) -> Optional[StreamState]:
-        cursor = self._cursor_per_partition.get(self._to_partition_key(partition))
-        if cursor:
+        if cursor := self._cursor_per_partition.get(
+            self._to_partition_key(partition)
+        ):
             return cursor.get_stream_state()
 
         return None
@@ -186,9 +186,6 @@ class PerPartitionCursor(Cursor):
     def select_state(self, stream_slice: Optional[PerPartitionStreamSlice] = None) -> Optional[StreamState]:
         if not stream_slice:
             raise ValueError("A partition needs to be provided in order to extract a state")
-
-        if not stream_slice:
-            return None
 
         return self._get_state_for_partition(stream_slice.partition)
 

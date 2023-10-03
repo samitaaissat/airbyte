@@ -194,13 +194,17 @@ def test_display_report_stream(config):
 
     stream = SponsoredDisplayReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice = {"profile": profiles[0], "reportDate": "20210725"}
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
     assert len(metrics) == METRICS_COUNT * len(stream.metrics_map)
 
     profiles = make_profiles(profile_type="vendor")
     stream = SponsoredDisplayReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice["profile"] = profiles[0]
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
     # Skip asins record for vendor profiles
     assert len(metrics) == METRICS_COUNT * (len(stream.metrics_map) - 1)
 
@@ -240,7 +244,7 @@ def test_stream_report_body_metrics(config, profiles, stream_class, url_pattern,
             record_type = match.group(1)
             request_body = call.request.body
             request_metrics = json.loads(request_body.decode("utf-8"))["metrics"]
-            if record_type == RecordType.PRODUCTADS or record_type == RecordType.ASINS:
+            if record_type in [RecordType.PRODUCTADS, RecordType.ASINS]:
                 assert ("sku" in request_metrics) == expected
             else:
                 assert "sku" not in request_metrics
@@ -258,7 +262,9 @@ def test_products_report_stream(config):
 
     stream = SponsoredProductsReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice = {"profile": profiles[0], "reportDate": "2021-07-25", "retry_count": 3}
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
     assert len(metrics) == METRICS_COUNT * len(stream.metrics_map)
 
 
@@ -274,7 +280,9 @@ def test_products_report_stream_without_pk(config):
 
     stream = SponsoredProductsReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice = {"profile": profiles[0], "reportDate": "2021-07-25", "retry_count": 3}
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
 
     assert len(metrics) == len(stream.metrics_map)
 
@@ -291,7 +299,9 @@ def test_brands_report_stream(config):
 
     stream = SponsoredBrandsReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice = {"profile": profiles[0], "reportDate": "20210725"}
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
     assert len(metrics) == METRICS_COUNT * len(stream.metrics_map)
 
 
@@ -307,7 +317,9 @@ def test_brands_video_report_stream(config):
 
     stream = SponsoredBrandsVideoReportStream(config, profiles, authenticator=mock.MagicMock())
     stream_slice = {"profile": profiles[0], "reportDate": "20210725"}
-    metrics = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+    metrics = list(
+        stream.read_records(SyncMode.incremental, stream_slice=stream_slice)
+    )
     assert len(metrics) == METRICS_COUNT * len(stream.metrics_map)
 
 
@@ -322,7 +334,7 @@ def test_display_report_stream_init_failure(mocker, config):
 
     sleep_mock = mocker.patch("time.sleep")
     with pytest.raises(Exception):
-        [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+        list(stream.read_records(SyncMode.incremental, stream_slice=stream_slice))
 
     assert sleep_mock.call_count == 4
     assert len(responses.calls) == 5
@@ -337,7 +349,7 @@ def test_display_report_stream_init_http_exception(mocker, config):
     responses.add(responses.POST, re.compile(r"https://advertising-api.amazon.com/sd/[a-zA-Z]+/report"), body=ConnectionError())
 
     with raises(ConnectionError):
-        _ = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+        _ = list(stream.read_records(SyncMode.incremental, stream_slice=stream_slice))
     assert len(responses.calls) == 10
 
 
@@ -350,7 +362,7 @@ def test_display_report_stream_init_too_many_requests(mocker, config):
     responses.add(responses.POST, re.compile(r"https://advertising-api.amazon.com/sd/[a-zA-Z]+/report"), json={}, status=429)
 
     with raises(TooManyRequests):
-        _ = [m for m in stream.read_records(SyncMode.incremental, stream_slice=stream_slice)]
+        _ = list(stream.read_records(SyncMode.incremental, stream_slice=stream_slice))
     assert len(responses.calls) == 10
 
 
@@ -540,7 +552,7 @@ def test_get_date_range_lazy_evaluation():
         assert date_range == ["2022-06-01"]
 
         date_range = list(get_date_range(start_date=Date(2022, 6, 2), timezone="UTC"))
-        assert date_range == []
+        assert not date_range
 
         date_range = []
         for date in get_date_range(start_date=Date(2022, 5, 29), timezone="UTC"):
@@ -566,7 +578,7 @@ def test_read_incremental_without_records(config):
         for reportDate in reportDates:
             records = list(read_incremental(stream, state))
             assert state == {"1": {"reportDate": reportDate}}
-            assert records == []
+            assert not records
             frozen_datetime.tick(delta=timedelta(days=1))
 
 
@@ -631,7 +643,7 @@ def test_read_incremental_without_records_start_date(config):
         for reportDate in reportDates:
             records = list(read_incremental(stream, state))
             assert state == {"1": {"reportDate": reportDate}}
-            assert records == []
+            assert not records
             frozen_datetime.tick(delta=timedelta(days=1))
 
 

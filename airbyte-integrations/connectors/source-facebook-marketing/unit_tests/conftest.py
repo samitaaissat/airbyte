@@ -12,8 +12,7 @@ FB_API_VERSION = FacebookAdsApi.API_VERSION
 
 @fixture(autouse=True)
 def time_sleep_mock(mocker):
-    time_mock = mocker.patch("time.sleep")
-    yield time_mock
+    yield mocker.patch("time.sleep")
 
 
 @fixture(scope="session", name="account_id")
@@ -51,6 +50,14 @@ def fb_account_response_fixture(account_id):
 def api_fixture(some_config, requests_mock, fb_account_response):
     api = API(account_id=some_config["account_id"], access_token=some_config["access_token"])
 
-    requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/me/adaccounts", [fb_account_response])
-    requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FB_API_VERSION}/act_{some_config['account_id']}/", [fb_account_response])
+    requests_mock.register_uri(
+        "GET",
+        f"{FacebookSession.GRAPH}/{FB_API_VERSION}/me/adaccounts",
+        [fb_account_response],
+    )
+    requests_mock.register_uri(
+        "GET",
+        f"{FacebookSession.GRAPH}/{FB_API_VERSION}/act_{some_config['account_id']}/",
+        [fb_account_response],
+    )
     return api

@@ -15,7 +15,7 @@ def reports_stream(marketplace_id):
         aws_session_token="SessionToken",
         region="Mars",
     )
-    stream = SellerFeedbackReports(
+    return SellerFeedbackReports(
         url_base="https://test.url",
         aws_signature=aws_signature,
         replication_start_date="2010-01-25T00:00:00Z",
@@ -27,7 +27,6 @@ def reports_stream(marketplace_id):
         advanced_stream_options=None,
         max_wait_seconds=0,
     )
-    return stream
 
 
 INPUT_DATES = {

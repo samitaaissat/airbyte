@@ -16,14 +16,12 @@ from .utils import command_check
 
 @pytest.fixture(name="config")
 def config_fixture():
-    config = {
+    return {
         "account_id": "123",
         "access_token": "TOKEN",
         "start_date": "2019-10-10T00:00:00Z",
         "end_date": "2020-10-10T00:00:00Z",
     }
-
-    return config
 
 
 @pytest.fixture
@@ -130,7 +128,11 @@ class TestSourceFacebookMarketing:
 
 
 def test_check_config(config_gen, requests_mock):
-    requests_mock.register_uri("GET", FacebookSession.GRAPH + f"/{FacebookAdsApi.API_VERSION}/act_123/", {})
+    requests_mock.register_uri(
+        "GET",
+        f"{FacebookSession.GRAPH}/{FacebookAdsApi.API_VERSION}/act_123/",
+        {},
+    )
 
     source = SourceFacebookMarketing()
     assert command_check(source, config_gen()) == AirbyteConnectionStatus(status=Status.SUCCEEDED, message=None)

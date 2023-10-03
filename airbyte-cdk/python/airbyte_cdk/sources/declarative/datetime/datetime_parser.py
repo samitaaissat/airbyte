@@ -35,10 +35,7 @@ class DatetimeParser:
         # strftime("%s") is unreliable because it ignores the time zone information and assumes the time zone of the system it's running on
         # It's safer to use the timestamp() method than the %s directive
         # See https://stackoverflow.com/a/4974930
-        if format == "%s":
-            return str(int(dt.timestamp()))
-        else:
-            return dt.strftime(format)
+        return str(int(dt.timestamp())) if format == "%s" else dt.strftime(format)
 
     def _is_naive(self, dt: datetime.datetime) -> bool:
         return dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None

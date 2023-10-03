@@ -56,10 +56,10 @@ class CursorPatch(Cursor):
             # Indicate if this was the last page
             self._finished_iteration = True
 
-        if self._include_summary and "summary" in response and "total_count" in response["summary"]:
-            self._total_count = response["summary"]["total_count"]
-
         if self._include_summary and "summary" in response:
+            if "total_count" in response["summary"]:
+                self._total_count = response["summary"]["total_count"]
+
             self._summary = response["summary"]
 
         self._queue = self.build_objects_from_response(response)

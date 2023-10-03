@@ -9,17 +9,17 @@ from source_faker import SourceFaker
 
 
 class MockLogger:
-    def debug(a,b, **kwargs):
+    def debug(self, b, **kwargs):
         return None
 
-    def info(a,b, **kwargs):
+    def info(self, b, **kwargs):
         return None
 
-    def exception(a,b,**kwargs):
+    def exception(self, b, **kwargs):
         print(b)
         return None
 
-    def isEnabledFor(a, b, **kwargs):
+    def isEnabledFor(self, b, **kwargs):
         return False
 
 

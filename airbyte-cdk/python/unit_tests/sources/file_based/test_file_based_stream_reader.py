@@ -77,5 +77,7 @@ FILES = make_remote_files(FILEPATHS)
     ],
 )
 def test_globs_and_prefixes_from_globs(globs, expected_matches, expected_path_prefixes):
-    assert set([f.uri for f in reader.filter_files_by_globs(FILES, globs)]) == expected_matches
+    assert {
+        f.uri for f in reader.filter_files_by_globs(FILES, globs)
+    } == expected_matches
     assert set(reader.get_prefixes_from_globs(globs)) == expected_path_prefixes

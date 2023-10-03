@@ -197,8 +197,10 @@ class FBMarketingIncrementalStream(FBMarketingStream, ABC):
         state_value = stream_state.get(self.cursor_field)
         filter_value = self._start_date if not state_value else pendulum.parse(state_value)
 
-        potentially_new_records_in_the_past = self._include_deleted and not stream_state.get("include_deleted", False)
-        if potentially_new_records_in_the_past:
+        if (
+            potentially_new_records_in_the_past := self._include_deleted
+            and not stream_state.get("include_deleted", False)
+        ):
             self.logger.info(f"Ignoring bookmark for {self.name} because of enabled `include_deleted` option")
             filter_value = self._start_date
 

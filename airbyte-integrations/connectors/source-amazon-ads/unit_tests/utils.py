@@ -33,9 +33,9 @@ def read_incremental(stream_instance: Stream, stream_state: MutableMapping[str, 
 def read_full_refresh(stream_instance: Stream):
     slices = stream_instance.stream_slices(sync_mode=SyncMode.full_refresh)
     for _slice in slices:
-        records = stream_instance.read_records(stream_slice=_slice, sync_mode=SyncMode.full_refresh)
-        for record in records:
-            yield record
+        yield from stream_instance.read_records(
+            stream_slice=_slice, sync_mode=SyncMode.full_refresh
+        )
 
 
 def command_check(source: Source, config):
